@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+#Bela
+**/.DS_Store
+**/._*
+*.sw?
+**/build/
