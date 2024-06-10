@@ -1,0 +1,3 @@
+[submodule "audio-utils"] 
+ 	path = audio-utils 
+ 	url = https://github.com/davisonaudio/audio-utils.git
