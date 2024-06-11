@@ -38,17 +38,17 @@ public:
 
     void setResonantFrequencyHz(sample_t resonant_frequency_hz)
     {
-        resonance_filter_setup.cutoff_freq_hz = resonant_frequency_hz;
+        m_resonance_filter.setCutoff(resonant_frequency_hz);
     }
 
     void setResonancePeakGainDb(sample_t resonance_peak_gain_db)
     {
-        resonance_filter_setup.filter_gain_db = resonance_peak_gain_db;   
+        m_resonance_filter.setFilterGain(resonance_peak_gain_db);   
     }
 
     void setResonanceQ(sample_t resonance_q)
     {
-        resonance_filter_setup.quality_factor = resonance_q;
+        m_resonance_filter.setQ(resonance_q);
     }
 
     void setResonanceToneLevelDb(sample_t resonance_tone_level_db)
