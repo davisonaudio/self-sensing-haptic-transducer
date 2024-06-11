@@ -15,17 +15,12 @@ http://bela.io
 #include <libraries/Scope/Scope.h>
 #include <cstdlib>
 #include "TransducerFeedbackCancellation.h"
-#include "StringWaveguide/String.h"
-#include "audio-utils/au_RectangularWave.h"
 #include "audio-utils/au_Biquad.h"
 
 Scope scope;
 
 TransducerFeedbackCancellation transducer_processing;
 
-String string;
-
-RectangularWave pulse_train;
 
 Biquad smoothing;
 
@@ -45,24 +40,6 @@ bool setup(BelaContext *context, void *userData)
 	transducer_processing.setup(processing_setup);
 	
 	scope.setup(3, context->audioSampleRate);
-	
-	string.setFrequency(380.0);
-	
-	RectangularWave::Setup pulse_setup;
-	pulse_setup.sample_rate_hz = context->audioSampleRate;
-	pulse_setup.frequency_hz = 380.0;
-	pulse_setup.duty_cycle = 0.01;
-	
-	pulse_train.setup(pulse_setup);
-	
-	
-	Biquad::FilterSetup smoothing_setup;
-	smoothing_setup.sample_rate_hz = context->audioSampleRate;
-    smoothing_setup.cutoff_freq_hz = 300.0;
-    smoothing_setup.quality_factor = 0.7;
-    smoothing_setup.filter_gain_db = 0.0;
-    smoothing_setup.filter_type = Biquad::FilterType::LOWPASS;
-    smoothing.setup(smoothing_setup);
 	
 	return true;
 }
@@ -91,11 +68,6 @@ void render(BelaContext *context, void *userData)
 
 		audioWrite(context, n, 0, processed.output_to_transducer * 0.1 );
 		audioWrite(context, n, 1, processed.output_to_transducer * 0.1 );
-		
-		float rectified = smoothing.process(fabs(processed.input_feedback_removed));
-		float modulated_p_train = rectified * (1 + (0.5 * pulse_train.process()));
-		float audio_output = string.update(modulated_p_train) * 0.2;
-		audioWrite(context, n, 2, audio_output);
 		
 		scope.log(processed.transducer_return_with_gain_applied, processed.modelled_signal, processed.input_feedback_removed);
 		
