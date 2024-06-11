@@ -1,9 +1,24 @@
+/*
+
+!! Problems:
+	slider text needs to be limited to 2dp
+
+*/
+
+
+
+
 //buffer to send to Bela. 6 elements: 6 sliders
 let buffer = [0,0,0,0,0,0];
 
+
+
 function setup() {
-	//Create 6 sliders
-	//both go from 0 to 100, starting with value of 50
+	
+	// createCanvas(WW, WH);
+	// background(200);
+	
+	//Create 6 sliders for each of the 6 variables
 	ResonantFrequencyHz = createSlider(20, 1000, 20,0);
 	ResonancePeakGainDb = createSlider(0, 30, 0,0);
 	ResonanceQ = createSlider(0.5,20,0.5,0);
@@ -11,7 +26,6 @@ function setup() {
     InductanceFilterCoefficient = createSlider(0,1,0,0);
     TransducerInputWidebandGainDb = createSlider(-20,20,-20,0);
     
-	
 	//Text
 	p1 = createP("Resonant Frequency Hz:");
 	p2 = createP("Resonance Peak Gain Db:");
@@ -19,7 +33,8 @@ function setup() {
 	p4 = createP("Resonance Tone Level Db:");
 	p5 = createP("Inductance Filter Coefficient:");
     p6 = createP("Transducer Input Wideband Gain Db:");
-  
+	
+	//Input textboxes 
     textBoxResFreq = createInput('');
     textBoxResPeak = createInput('');
     textBoxResQ = createInput('');
@@ -27,22 +42,42 @@ function setup() {
     textBoxInduct = createInput('');
     textBoxTransGain = createInput('');
     
-    buttonResFreq = createButton('submit');
-    buttonResPeak = createButton('submit');
-    buttonResQ = createButton('submit');
-    buttonResTone = createButton('submit');
-    buttonInduct = createButton('submit');
-    buttonTransGain = createButton('submit');
-    
-	
 	//This function will format colors and positions of the DOM elements 
 	formatDOMElements();
 
 }
 
 
-function draw() {
-
+function draw() {  
+	
+	// Retrieve the data being sent from render.cpp
+	let LevelMeter_value = Bela.data.buffers[0];			// the value between -1 and +1 
+	
+	// Draw a circle on the left hand side whose position changes with the values received from render.cpp
+	// !! could this be adapted to 
+	// ellipse(200 + windowWidth/3 + 100,
+	// 	windowHeight/2 + (((windowHeight/2)-100)*sine), 50, 50);
+	
+	let c2 = color(0);
+	
+	fill(c2);
+	rectMode(CORNERS)
+	rect(200 + windowWidth/3 + 100,								// bottom left corner x value
+		windowHeight/2 + ((windowHeight/2)-100),				// bottom left corner y value
+		100 + (200 + windowWidth/3 + 100),						// top right corner x value
+		windowHeight/2 + (((windowHeight/2)-100) * LevelMeter_value) + 1);	// top right corner y value 
+	
+	
+	let c1 = color(200);
+	
+	fill(c1);
+	rectMode(CORNERS)
+	rect(200 + windowWidth/3 + 100,								// same corners as above
+		windowHeight/2 + (((windowHeight/2)-100) * LevelMeter_value) + 1,
+		100 + (200 + windowWidth/3 + 100),
+		windowHeight/2 - ((windowHeight/2)-100));
+	
+	
     //store values in the buffer
 	buffer[0] = ResonantFrequencyHz.value();
 	buffer[1] = ResonancePeakGainDb.value();
@@ -57,127 +92,131 @@ function draw() {
 }
 
 function formatDOMElements() {
+	
+	let WW = windowWidth;
+	let WH = windowHeight;
+	
+	let slider_width = 200;
+	let text_width = 100;
+	
+	createCanvas(WW, WH);
+	background(200);
 
-	//Format sliders
-	ResonantFrequencyHz.size(windowWidth / 3);
-	ResonantFrequencyHz.position((windowWidth - ResonantFrequencyHz.width) / 2, 	// Sets the slider horizontally in the middle of the window
-        windowHeight / 2 - 210);                             //Sets the slider vertically 
+	//Format sliders repeated x6 
+	ResonantFrequencyHz.size(WW / 3);										//Sets the slider size to 1/3 the size of the window 
+	ResonantFrequencyHz.position(slider_width,						// set the slider to the right of the 
+        WH / 2 - 210);													//Sets the slider vertically 
     
-    ResonancePeakGainDb.size(windowWidth / 3);
-    ResonancePeakGainDb.position((windowWidth - ResonancePeakGainDb.width) / 2,
-		windowHeight / 2 - 140);
+    ResonancePeakGainDb.size(WW / 3);
+    ResonancePeakGainDb.position(slider_width,
+		WH / 2 - 140);
 
-    ResonanceQ.size(windowWidth / 3);
-    ResonanceQ.position((windowWidth - ResonanceQ.width) / 2,
-		windowHeight / 2 - 70);
+    ResonanceQ.size(WW / 3);
+    ResonanceQ.position(slider_width,
+		WH / 2 - 70);
 
-    ResonanceToneLevelDb.size(windowWidth / 3);
-    ResonanceToneLevelDb.position((windowWidth - ResonanceToneLevelDb.width) / 2,
-		windowHeight / 2 + 0);
+    ResonanceToneLevelDb.size(WW / 3);
+    ResonanceToneLevelDb.position(slider_width,
+		WH / 2 + 0);
 
-    InductanceFilterCoefficient.size(windowWidth / 3);
-    InductanceFilterCoefficient.position((windowWidth - InductanceFilterCoefficient.width) / 2,
-		windowHeight / 2 + 70);
+    InductanceFilterCoefficient.size(WW / 3);
+    InductanceFilterCoefficient.position(slider_width,
+		WH / 2 + 70);
 
-    TransducerInputWidebandGainDb.size(windowWidth / 3);
-	TransducerInputWidebandGainDb.position((windowWidth - TransducerInputWidebandGainDb.width) / 2,
-		windowHeight / 2 + 140);
-
-    p1.position((windowWidth - ResonantFrequencyHz.width) / 2, 
-    	windowHeight / 2 - 210 - (2.5 * p1.height));
+    TransducerInputWidebandGainDb.size(WW / 3);
+	TransducerInputWidebandGainDb.position(slider_width,
+		WH / 2 + 140);
+	
+	// Format Text repeated x6
+    p1.position(slider_width,			// located to the same x as the slider 
+    	(WH / 2) - (210 + 40));					// located 40 above the slider 
   
-    p2.position((windowWidth - ResonancePeakGainDb.width) / 2, 
-    	windowHeight / 2 - 140 - (2.5 * p2.height));
+    p2.position(slider_width, 
+    	(WH / 2) - (140 + 40));
     	
-    p3.position((windowWidth - ResonanceQ.width) / 2, 
-    	windowHeight / 2 - 70 - (2.5 * p3.height));
+    p3.position(slider_width, 
+    	(WH / 2) - (70 + 40));					
     
-    p4.position((windowWidth - ResonanceToneLevelDb.width) / 2, 
-    	windowHeight / 2 - 0 - (2.5 * p4.height));
+    p4.position(slider_width, 
+    	(WH / 2) - (0 +40));						
     
-    p5.position((windowWidth - InductanceFilterCoefficient.width) / 2, 
-    	windowHeight / 2 + 70 - (2.5 * p5.height));
+    p5.position(slider_width, 
+    	(WH / 2) - (-70 + 40));						
     
-    p6.position((windowWidth - TransducerInputWidebandGainDb.width) / 2, 
-    	windowHeight / 2 + 140 - (2.5 * p6.height));
-  
-    textBoxResFreq.position((windowWidth + ResonantFrequencyHz.width) / 2 +10 , windowHeight / 2 - 210);
+    p6.position(slider_width, 
+    	(WH / 2) - (-140 + 40));					
+    	
+    	
+    	
+	// Sorts positions of textbox and button 
+	// if textbox is imputted changes slider and vice-versa see functions updateValue() and sliderChange()
+	
+    textBoxResFreq.position(text_width, 	// positions textbox to the left of the slider 
+    	WH / 2 - 210);	
+    	// Positions textbox at the same height as the slider 
     textBoxResFreq.size(50);
   
     ResonantFrequencyHz.input(sliderChange);
-  
-    buttonResFreq.position(textBoxResFreq.x + textBoxResFreq.width+10, textBoxResFreq.y);
-    buttonResFreq.mousePressed(updateValue);
     
     textBoxResFreq.value(ResonantFrequencyHz.value());
-  
+    
     valueDisplayerResFreq = createP();
     valueDisplayerResFreq.position(30,height-50);
     
-    //
-    textBoxResPeak.position((windowWidth + ResonancePeakGainDb.width) / 2 +10 , windowHeight / 2 - 140);
+    // repeat for ResonancePeakGainDb
+    textBoxResPeak.position(text_width, 
+    	WH / 2 - 140);
     textBoxResPeak.size(50);
   
     ResonancePeakGainDb.input(sliderChange);
-  
-    buttonResPeak.position(textBoxResPeak.x + textBoxResPeak.width+10, textBoxResPeak.y);
-    buttonResPeak.mousePressed(updateValue);
     
     textBoxResPeak.value(ResonancePeakGainDb.value());
   
     valueDisplayerResPeak = createP();
     valueDisplayerResPeak.position(30,height-50);
     
-    //
-    textBoxResQ.position((windowWidth + ResonanceQ.width) / 2 +10 , windowHeight / 2 - 70);
+    // repeat for ResonanceQ
+    textBoxResQ.position(text_width, 
+    	WH / 2 - 70);
     textBoxResQ.size(50);
   
     ResonanceQ.input(sliderChange);
-  
-    buttonResQ.position(textBoxResQ.x + textBoxResQ.width+10, textBoxResQ.y);
-    buttonResQ.mousePressed(updateValue);
     
     textBoxResQ.value(ResonanceQ.value());
   
     valueDisplayerResQ = createP();
     valueDisplayerResQ.position(30,height-50);
     
-    //
-    textBoxResTone.position((windowWidth + ResonanceToneLevelDb.width) / 2 +10 , windowHeight / 2);
+    // repeat for ResonanceToneLevelDb
+    textBoxResTone.position(text_width, 
+    	WH / 2);
     textBoxResTone.size(50);
   
     ResonanceToneLevelDb.input(sliderChange);
-  
-    buttonResTone.position(textBoxResTone.x + textBoxResTone.width+10, textBoxResTone.y);
-    buttonResTone.mousePressed(updateValue);
     
     textBoxResTone.value(ResonanceToneLevelDb.value());
   
     valueDisplayerResTone = createP();
     valueDisplayerResTone.position(30,height-50);
     
-    //
-    textBoxInduct.position((windowWidth + InductanceFilterCoefficient.width) / 2 +10 , windowHeight / 2 + 70);
+    // repeat for InductanceFilterCoefficient
+    textBoxInduct.position(text_width, 
+    	WH / 2 + 70);
     textBoxInduct.size(50);
   
     InductanceFilterCoefficient.input(sliderChange);
-  
-    buttonInduct.position(textBoxInduct.x + textBoxInduct.width+10, textBoxInduct.y);
-    buttonInduct.mousePressed(updateValue);
     
     textBoxInduct.value(InductanceFilterCoefficient.value());
   
     valueDisplayerInduct = createP();
     valueDisplayerInduct.position(30,height-50);
     
-    //
-    textBoxTransGain.position((windowWidth + TransducerInputWidebandGainDb.width) / 2 +10 , windowHeight / 2 + 140);
+    // repeat for TransducerInputWidebandGainDb
+    textBoxTransGain.position(text_width, 
+    	WH / 2 + 140);
     textBoxTransGain.size(50);
   
     TransducerInputWidebandGainDb.input(sliderChange);
-  
-    buttonTransGain.position(textBoxTransGain.x + textBoxTransGain.width+10, textBoxTransGain.y);
-    buttonTransGain.mousePressed(updateValue);
     
     textBoxTransGain.value(TransducerInputWidebandGainDb.value());
   
@@ -186,8 +225,14 @@ function formatDOMElements() {
 	
 }
 
+function keyPressed() {
+  if (keyCode === ENTER) {
+    updateValue();
+  }
+}
+
 function updateValue(){
-	//if the textbox is updated, update the slider
+	//if the textbox is updated, update all the sliders
 	ResonantFrequencyHz.value(textBoxResFreq.value());
 	ResonancePeakGainDb.value(textBoxResPeak.value());
 	ResonanceQ.value(textBoxResQ.value());
