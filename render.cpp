@@ -7,7 +7,13 @@ ____  _____ _        _
 http://bela.io
 */
 /**
- 
+ self-sensing-haptic-transducer
+
+Software developed by Matthew Davison & Anna Silver within the Augmented Instrument Lab at the Dyson School of Design Engineering, Imperial College London
+
+This Bela project is designed, with the appropriate hardware, to enable a voice coil transducer to be used as a sensor and actuator simultaneously.
+
+
 */
  
 #include <Bela.h>
