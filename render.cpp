@@ -19,11 +19,10 @@ http://bela.io
 #include <libraries/Gui/Gui.h>
 #include "audio-utils/au_config.h"
 #include <cmath>
- 
- 
-Scope scope;
-Gui gui;
- 
+
+#define DEBUG_METER_DATA 0
+
+//Audio input channel definitions 
 #define INPUT_LOOPBACK_PIN 6
 #define INPUT_VOLTAGE_PIN 2
 #define INPUT_ACTUATION_SIGNAL_PIN 0
@@ -33,7 +32,8 @@ Gui gui;
  
 #define RESONANT_FREQ_HZ 380.0
  
- 
+Scope scope;
+Gui gui; 
 TransducerFeedbackCancellation transducer_processing;
  
  
@@ -42,7 +42,7 @@ Biquad meter_filter;
  
 bool setup(BelaContext *context, void *userData)
 {
- 
+	//Setup the feedback cancellation class initial parameters
 	TransducerFeedbackCancellation::Setup processing_setup;
 	processing_setup.resonant_frequency_hz = RESONANT_FREQ_HZ;
 	processing_setup.resonance_peak_gain_db = 23.5;
@@ -52,12 +52,14 @@ bool setup(BelaContext *context, void *userData)
 	processing_setup.transducer_input_wideband_gain_db = 0.0;
 	processing_setup.sample_rate_hz = context->audioSampleRate;
 	transducer_processing.setup(processing_setup);
+
+	//Setup the biquad parameters for meter filtering
 	Biquad::FilterSetup metering_lowpass_setup;
-    metering_lowpass_setup.cutoff_freq_hz = 25;
-    metering_lowpass_setup.filter_gain_db = 0;
-    metering_lowpass_setup.quality_factor = 0.5;
-    metering_lowpass_setup.sample_rate_hz = context->audioSampleRate;
-    metering_lowpass_setup.filter_type = Biquad::FilterType::LOWPASS;
+	metering_lowpass_setup.cutoff_freq_hz = 25;
+	metering_lowpass_setup.filter_gain_db = 0;
+	metering_lowpass_setup.quality_factor = 0.5;
+	metering_lowpass_setup.sample_rate_hz = context->audioSampleRate;
+	metering_lowpass_setup.filter_type = Biquad::FilterType::LOWPASS;
 	meter_filter.setup(metering_lowpass_setup);
 
 
@@ -65,8 +67,10 @@ bool setup(BelaContext *context, void *userData)
  
 	// Set up the GUI
 	gui.setup(context->projectName);
+
 	//Set the buffer to receive from the GUI
 	gui.setBuffer('f', 3);
+
 	return true;
 }
  
@@ -114,7 +118,9 @@ void render(BelaContext *context, void *userData)
 		if (sample_count % 100 == 0) {
 			// sketch.js is implemenmted to create bar fropm a value from 0 - 1
 			gui.sendBuffer(0, map(input_feedback_removed_rectified_lowpass, 0, 2.3, 0, 1));
-			// rt_printf("%lf \n", input_feedback_removed_rectified_lowpass);
+#if DEBUG_METER_DATA
+			rt_printf("%lf \n", input_feedback_removed_rectified_lowpass);
+#endif
 		}
 	}
 }
