@@ -37,6 +37,7 @@ public:
     };
  
     void setResonantFrequencyHz(sample_t resonant_frequency_hz);
+    void setOscillatorFrequencyHz(sample_t oscillator_frequency_hz);
     void setResonancePeakGainDb(sample_t resonance_peak_gain_db);
     void setResonanceQ(sample_t resonance_q);
     void setResonanceToneLevelDb(sample_t resonance_tone_level_db);
@@ -80,7 +81,11 @@ private:
  
 void TransducerFeedbackCancellation::setResonantFrequencyHz(sample_t resonant_frequency_hz)
 {
-    //m_resonance_filter.setCutoff(resonant_frequency_hz);
+    m_resonance_filter.setCutoff(resonant_frequency_hz);
+}
+
+void TransducerFeedbackCancellation::setOscillatorFrequencyHz(sample_t oscillator_frequency_hz)
+{
     m_resonance_tone.setFrequency(resonant_frequency_hz);
 }
  
