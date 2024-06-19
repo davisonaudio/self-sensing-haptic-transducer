@@ -18,6 +18,7 @@ public:
 
     void setup();
     void setResonantFrequencyHz(sample_t resonant_freq_hz);
+    void setWindowSizePeriods(int window_size_periods);
 
     void process(sample_t actuation_sample, sample_t sensed_sample);
 
@@ -38,6 +39,12 @@ public:
     void calibrateUndamped();
 
     virtual void endOfWindow(){}
+
+    /*
+     * Resets indexes of Goertzel & Windowing object, restarts them at beginning of the window.
+     * It also resets the windowing object window sizes to be equal to the goertzel object window lengths (in case of freq/period length change)
+     */
+    void reset();
 
 private:
 
@@ -69,11 +76,15 @@ void ForceSensing::setResonantFrequencyHz(sample_t resonant_freq_hz)
     m_actuation_signal_goertzel.setTargetFrequencyHz(resonant_freq_hz);
     m_sensed_signal_goertzel.setTargetFrequencyHz(resonant_freq_hz);
 
-    m_actuation_signal_window.setWindowSizeSamples(m_actuation_signal_goertzel.getWindowLengthSamples());
-    m_sensing_signal_window.setWindowSizeSamples(m_sensed_signal_goertzel.getWindowLengthSamples());
+    reset();
+}
 
-    m_actuation_signal_goertzel.reset();
-    m_sensed_signal_goertzel.reset();
+void ForceSensing::setWindowSizePeriods(int window_size_periods)
+{
+    m_actuation_signal_goertzel.setWindowSizePeriods(window_size_periods);
+    m_sensed_signal_goertzel.setWindowSizePeriods(window_size_periods);
+
+    reset();
 }
 
 void ForceSensing::process(sample_t actuation_sample, sample_t sensed_sample)
@@ -106,4 +117,16 @@ sample_t ForceSensing::mapRawValue(sample_t raw_val)
 {
     sample_t value_range = m_undamped_calibration_val - m_damped_calibration_val;
     return (raw_val - m_damped_calibration_val) * value_range;
+}
+
+void ForceSensing::reset()
+{
+    m_actuation_signal_goertzel.reset();
+    m_sensed_signal_goertzel.reset();
+    
+    m_actuation_signal_window.resetIndex();
+    m_sensing_signal_window.resetIndex();
+
+    m_actuation_signal_window.setWindowSizeSamples(m_actuation_signal_goertzel.getWindowLengthSamples());
+    m_sensing_signal_window.setWindowSizeSamples(m_sensed_signal_goertzel.getWindowLengthSamples());
 }
