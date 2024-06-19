@@ -10,13 +10,18 @@ Date: 14/06/2024
 #pragma once
 
 #include "audio-utils/au_GoertzelAlgorithm.h"
+#include "audio-utils/au_Windowing.h"
 
 class ForceSensing
 {
 public:
+
+    void setup();
     void setResonantFrequencyHz(sample_t resonant_freq_hz);
 
     void process(sample_t actuation_sample, sample_t sensed_sample);
+
+    sample_t getDamping();
 
     /* 
      * This function should be called when the transducer is damped. it stores the last raw val as the calibration value
@@ -39,6 +44,9 @@ private:
     RealtimeGoertzel m_actuation_signal_goertzel;
     RealtimeGoertzel m_sensed_signal_goertzel;
 
+    Windowing m_actuation_signal_window;
+    Windowing m_sensing_signal_window;
+
     /*
      * Returns a normalised floating point value of the damping where 1 = undamped, 0 = damped
      * Note: damped & undamped calibration methods must be called first, otherwise this function won't do anything useful
@@ -60,12 +68,28 @@ void ForceSensing::setResonantFrequencyHz(sample_t resonant_freq_hz)
 {
     m_actuation_signal_goertzel.setTargetFrequencyHz(resonant_freq_hz);
     m_sensed_signal_goertzel.setTargetFrequencyHz(resonant_freq_hz);
+
+    m_actuation_signal_window.setWindowSizeSamples(m_actuation_signal_goertzel.getWindowLengthSamples());
+    m_sensing_signal_window.setWindowSizeSamples(m_sensed_signal_goertzel.getWindowLengthSamples());
+
+    m_actuation_signal_goertzel.reset();
+    m_sensed_signal_goertzel.reset();
 }
 
 void ForceSensing::process(sample_t actuation_sample, sample_t sensed_sample)
 {
-    m_actuation_signal_goertzel.processSample(actuation_sample);
-    m_sensed_signal_goertzel.processSample(sensed_sample);
+    //Apply window to signals & feed into Goertzel
+    m_actuation_signal_goertzel.processSample(m_actuation_signal_window.applyWindowToSample(actuation_sample));
+    m_sensed_signal_goertzel.processSample(m_sensing_signal_window.applyWindowToSample(sensed_sample));
+    if (m_actuation_signal_goertzel.checkNewValFlag())
+    {
+        m_last_raw_difference_val = m_actuation_signal_goertzel.getLastMagnitude() - m_sensed_signal_goertzel.getLastMagnitude();
+    }
+}
+
+sample_t ForceSensing::getDamping()
+{
+    return mapRawValue(m_last_raw_difference_val);
 }
 
 void ForceSensing::calibrateUndamped()
