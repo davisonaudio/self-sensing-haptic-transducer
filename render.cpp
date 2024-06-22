@@ -16,15 +16,26 @@ This Bela project is designed, with the appropriate hardware, to enable a voice 
 
 */
 
-#include <Bela.h>
+//Standard C++ Includes
 #include <stdexcept>
-#include <libraries/Scope/Scope.h>
 #include <cstdlib>
-#include "TransducerFeedbackCancellation.h"
-#include "audio-utils/au_Biquad.h"
-#include <libraries/Gui/Gui.h>
-#include "audio-utils/au_config.h"
 #include <cmath>
+
+//Bela includes
+#include <Bela.h>
+#include <libraries/Scope/Scope.h>
+#include <libraries/Gui/Gui.h>
+#include <libraries/Midi/Midi.h>
+
+//audio-utils includes
+#include "audio-utils/au_Biquad.h"
+#include "audio-utils/au_config.h"
+
+//Project includes
+#include "TransducerFeedbackCancellation.h"
+#include "ForceSensing.h"
+
+
 
 #define DEBUG_METER_DATA 0
 
@@ -40,7 +51,10 @@ This Bela project is designed, with the appropriate hardware, to enable a voice 
 
 Scope scope;
 Gui gui;
+Midi gMidi;
+const char* gMidiPort0 = "hw:0,0,0";
 TransducerFeedbackCancellation transducer_processing;
+ForceSensing force_sensing;
 
 
 Biquad meter_filter;
@@ -77,6 +91,12 @@ bool setup(BelaContext *context, void *userData)
     //Set the buffer to receive from the GUI
     gui.setBuffer('f', 8);
 
+    //Initialise MIDI
+	if(gMidi.readFrom(gMidiPort0) < 0) {
+		rt_printf("Unable to read from MIDI port %s\n", gMidiPort0);
+		return false;
+	}
+	gMidi.writeTo(gMidiPort0);
     return true;
 }
 
