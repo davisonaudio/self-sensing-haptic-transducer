@@ -23,7 +23,7 @@ function setup() {
     ResonanceToneLevelDb = createSlider(-90,0,-10,0.001);
     InductanceFilterCoefficient = createSlider(0,1,0.5,0.001);
     TransducerInputWidebandGainDb = createSlider(-30,30,0,0.001);
-    OscillatorFrequencyHz = createSlider(1,4, 0,0.001);
+    OscillatorFrequencyHz = createSlider(Math.log10(10), Math.log10(20000), Math.log10(200),0.001);
     //Create noise checkbox
     NoiseCheckbox = createCheckbox(' Noise:');
     //Text
