@@ -33,6 +33,7 @@ public:
         sample_t transducer_input_wideband_gain_db;
         sample_t sample_rate_hz;
         AmplifierType amplifier_type;
+        bool lowpass_transducer_io = true;
     };
 
     void setResonantFrequencyHz(sample_t resonant_frequency_hz);
@@ -70,8 +71,29 @@ private:
     ToneGenerator m_resonance_tone;
     sample_t m_transducer_input_wideband_gain_lin;
 
+    Biquad m_output_to_transducer_lowpass;
+    Biquad m_input_from_transducer_lowpass;
+    bool m_lowpass_filters_enabled;
+
     sample_t applyTransducerModelFilter(sample_t input_sample);
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*
 * Implementation of methods
@@ -135,6 +157,19 @@ void TransducerFeedbackCancellation::setup(Setup setup_parameters)
     m_resonance_tone.setSampleRate(setup_parameters.sample_rate_hz);
     m_resonance_tone.setLeveldB(setup_parameters.resonance_tone_level_db);
 
+
+    //Setup lowpass filters
+    m_lowpass_filters_enabled = setup_parameters.lowpass_transducer_io;
+    Biquad::FilterSetup lowpass_setup;
+    lowpass_setup.cutoff_freq_hz = 1000.0;
+    lowpass_setup.filter_gain_db = 0.0;
+    lowpass_setup.quality_factor = 0.701;
+    lowpass_setup.sample_rate_hz = setup_parameters.sample_rate_hz;
+    lowpass_setup.filter_type = Biquad::FilterType::LOWPASS;
+
+    m_output_to_transducer_lowpass.setup(lowpass_setup);
+    m_input_from_transducer_lowpass.setup(lowpass_setup);
+
 }
 
 TransducerFeedbackCancellation::ProcessedSamples TransducerFeedbackCancellation::process(UnprocessedSamples unprocessed)
@@ -144,29 +179,17 @@ TransducerFeedbackCancellation::ProcessedSamples TransducerFeedbackCancellation:
     //Process input from transducer
     processed.modelled_signal = applyTransducerModelFilter(unprocessed.reference_input_loopback);
 
-    if (processed.modelled_signal != processed.modelled_signal)
-    {
-        rt_printf("MODELLED SIGNAL NAN\n");
-    }
     processed.transducer_return_with_gain_applied = m_transducer_input_wideband_gain_lin * unprocessed.input_from_transducer;
 
-
-    if (processed.transducer_return_with_gain_applied != processed.transducer_return_with_gain_applied)
-    {
-        rt_printf("GAIN APPLIED SIGNAL NAN\n");
-    }
     processed.input_feedback_removed = processed.transducer_return_with_gain_applied - processed.modelled_signal;
-
-    if (isnan(processed.input_feedback_removed))
-    {
-        rt_printf("FEEDBACK REMOVED SIGNAL NAN\n");
-    }
 
     //Process output to transducer
     processed.output_to_transducer = unprocessed.output_to_transducer + m_resonance_tone.process();
-    if (processed.output_to_transducer != processed.output_to_transducer)
-    {
-        rt_printf("OUTPUT TO TRANSDUCER SIGNAL NAN\n");
+
+    if (m_lowpass_filters_enabled)
+    { //Filter to signal to/from transducer
+        processed.output_to_transducer = m_output_to_transducer_lowpass.process(processed.output_to_transducer);
+        processed.input_feedback_removed = m_input_from_transducer_lowpass.process(processed.input_feedback_removed);
     }
 
     return processed;
