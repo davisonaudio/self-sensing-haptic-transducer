@@ -49,6 +49,9 @@ This Bela project is designed, with the appropriate hardware, to enable a voice 
 
 #define RESONANT_FREQ_HZ 380.0
 
+#define MIDI_CC_CHANNEL 0
+#define MIDI_CC_NUMBER 0
+
 Scope scope;
 Gui gui;
 Midi gMidi;
@@ -116,29 +119,34 @@ void render(BelaContext *context, void *userData)
         unprocessed.reference_input_loopback = 5 * audioRead(context, n, INPUT_LOOPBACK_PIN);
         TransducerFeedbackCancellation::ProcessedSamples processed = transducer_processing.process(unprocessed);
 
-        // processed.output_to_transducer = randnum;
-
         audioWrite(context, n, OUTPUT_AMP_PIN, processed.output_to_transducer * 0.2);
         audioWrite(context, n, OUTPUT_LOOPBACK_PIN, processed.output_to_transducer * 0.2);
         audioWrite(context, n, OUTPUT_PICKUP_SIGNAL_PIN, processed.input_feedback_removed);
 
-
+        force_sensing.process(processed.input_feedback_removed, processed.output_to_transducer);
 
 
         scope.log(processed.transducer_return_with_gain_applied, processed.modelled_signal, processed.input_feedback_removed);
 
-        // rectifies the input signal
+        // rectify and filter signal for GUI meter
         sample_t input_feedback_removed_rectified = abs(processed.input_feedback_removed);  
         sample_t input_feedback_removed_rectified_lowpass = meter_filter.process(input_feedback_removed_rectified);
+        
+        
         sample_count ++;
 
-        if (sample_count % 1000 == 0) {
+        if (sample_count % 1000 == 0) { //Updates from GUI & send MIDI every 1000 samples (44.1Hz)
             // sketch.js is implemenmted to create bar fropm a value from 0 - 1
             gui.sendBuffer(0,input_feedback_removed_rectified_lowpass);  //map(input_feedback_removed_rectified_lowpass, 0, 2.3, 0, 1));
 #if DEBUG_METER_DATA
             rt_printf("%f \n", processed.input_feedback_removed);
 #endif
+            
+            //Send damping val over MIDI connection
+            uint8_t mapped_damping = (uint8_t) 128 * force_sensing.getDamping();
+            gMidi.writeControlChange(MIDI_CC_CHANNEL, MIDI_CC_NUMBER, mapped_damping);
 
+            //Retrieve data from the GUI TODO: Change this to use callbacks
             if (gui.isConnected())
             {
                 DataBuffer & buffer = gui.getDataBuffer(0);
