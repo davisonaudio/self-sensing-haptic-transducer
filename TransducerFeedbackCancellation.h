@@ -161,7 +161,7 @@ void TransducerFeedbackCancellation::setup(Setup setup_parameters)
     //Setup lowpass filters
     m_lowpass_filters_enabled = setup_parameters.lowpass_transducer_io;
     Biquad::FilterSetup lowpass_setup;
-    lowpass_setup.cutoff_freq_hz = 1000.0;
+    lowpass_setup.cutoff_freq_hz = 500.0;
     lowpass_setup.filter_gain_db = 0.0;
     lowpass_setup.quality_factor = 0.701;
     lowpass_setup.sample_rate_hz = setup_parameters.sample_rate_hz;
@@ -199,7 +199,7 @@ sample_t TransducerFeedbackCancellation::applyTransducerModelFilter(sample_t inp
 {
     sample_t output = m_resonance_filter.process(input_sample);
 
-    output = m_series_inductance_filter.process(output);
+    //output = m_series_inductance_filter.process(output);
     return output;
 }
 

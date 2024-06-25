@@ -41,16 +41,18 @@ This Bela project is designed, with the appropriate hardware, to enable a voice 
 
 //Audio input channel definitions
 #define INPUT_LOOPBACK_PIN 6
-#define INPUT_VOLTAGE_PIN 0
-#define INPUT_ACTUATION_SIGNAL_PIN 2
-#define OUTPUT_AMP_PIN 0
+#define INPUT_VOLTAGE_PIN 4
+#define INPUT_ACTUATION_SIGNAL_PIN 3
+#define OUTPUT_AMP_PIN 4
 #define OUTPUT_LOOPBACK_PIN 6
-#define OUTPUT_PICKUP_SIGNAL_PIN 2
+#define OUTPUT_PICKUP_SIGNAL_PIN 3
 
 #define RESONANT_FREQ_HZ 380.0
 
 #define MIDI_CC_CHANNEL 0
 #define MIDI_CC_NUMBER 0
+
+#define LOWPASS_CUTOFF_HZ 500
 
 Scope scope;
 Gui gui;

@@ -116,7 +116,16 @@ void ForceSensing::calibrateDamped()
 sample_t ForceSensing::mapRawValue(sample_t raw_val)
 {
     sample_t value_range = m_undamped_calibration_val - m_damped_calibration_val;
-    return (raw_val - m_damped_calibration_val) * value_range;
+    sample_t mapped_val = (raw_val - m_damped_calibration_val) * value_range;
+    if (mapped_val < 0.0)
+    {
+        mapped_val = 0.0;
+    }
+    if (mapped_val > 1.0)
+    {
+        mapped_val = 1.0;
+    }
+    return mapped_val;
 }
 
 void ForceSensing::reset()
